@@ -110,10 +110,10 @@ def find_duplicates(csv_file_path, column_name):
 # process_files()
 
 # Checking if there are duplicate hashing
-csv_file = "song_features.csv"
-column = "Feature Hash"
-result = find_duplicates(csv_file, column)
-
-print(result)
+# csv_file = "song_features.csv"
+# column = "Feature Hash"
+# result = find_duplicates(csv_file, column)
+#
+# print(result)
 
 
