@@ -117,3 +117,17 @@ def find_duplicates(csv_file_path, column_name):
 # print(result)
 
 
+def produce_features_vector(uploaded_features_dict):
+    uploaded_features_vector = np.concatenate(
+        [uploaded_features_dict['mfccs'].flatten(),
+         uploaded_features_dict['chroma'].flatten(),
+         uploaded_features_dict['spectral_contrast'].flatten(),
+         uploaded_features_dict['tonnetz'].flatten(),
+         uploaded_features_dict['zcr'].flatten(),
+         uploaded_features_dict['spectral_centroid'].flatten(),
+         uploaded_features_dict['spectral_rolloff'].flatten()]
+    ).reshape(1, -1) #reshaping for cosine shit
+    return uploaded_features_vector
+
+
+

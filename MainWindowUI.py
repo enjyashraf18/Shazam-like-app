@@ -3,10 +3,10 @@ import os
 import csv
 from pathlib import Path
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog, QSlider
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
-from helper import extract_features, hash_features
+from helper import extract_features, hash_features, produce_features_vector
 
 
 class MainWindow(QMainWindow):
@@ -34,6 +34,16 @@ class MainWindow(QMainWindow):
         self.match_button.clicked.connect(self.compare_audios)
         self.play_mix_btn.clicked.connect(self.play_mix)
 
+        song1_slider = self.findChild(QSlider, "song_slider1")
+        song1_slider.setRange(0, 100)
+        song1_slider.setValue(100)
+        song1_slider.valueChanged.connect(lambda value, index=0: self.update_weights(value, index))
+
+        song2_slider = self.findChild(QSlider, "song_slider2")
+        song2_slider.setRange(0, 100)
+        song2_slider.setValue(100)
+        song2_slider.valueChanged.connect(lambda value, index=1: self.update_weights(value, index))
+
         self.input_hashes = [""] * 2
         self.song_names = {
             1: "Save Your Tears",
@@ -55,6 +65,9 @@ class MainWindow(QMainWindow):
             20: "Hit the Road Jack"
         }
 
+        self.weights = [100] * 2
+        self.audio_files = [None, None]
+
     def upload_song(self, index):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav)")
         if file_path:
@@ -62,8 +75,10 @@ class MainWindow(QMainWindow):
             song_name = Path(file_path)
             song_name = song_name.stem
             if index == 0:
+                self.songs_files[index] = file_path
                 self.input_one_label.setText(song_name)
             elif index == 1:
+                self.songs_files[index] = file_path
                 self.input_two_label.setText(song_name)
             QApplication.processEvents()  # to change label before extracting features
             uploaded_features_dict = extract_features(file_path)
@@ -101,6 +116,30 @@ class MainWindow(QMainWindow):
         self.song_one_cover.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
     def play_mix(self):
         print("Play Mix Here")
+
+    def update_weights(self,value, idx):
+        self.weights[idx]= value
+        self.combine_features()
+
+    def combine_features(self):
+        song1_weight = self.weights[0] / 100
+        song2_weight = self.weights[1] /100
+
+    def convert_hex_to_bin(self, hex_string):
+        pass
+
+    def hamming_distance(self, hash_code1, hash_code2):
+        song1_bin = self.convert_hex_to_bin(hash_code1)
+        song2_bin = self.convert_hex_to_bin(hash_code2)
+
+        #msh 3arfa bs from that --> similarity index
+        # pass for now
+
+    def get_similarity_idx(self):
+        # nakhod result el hamming_distance
+        pass
+
+
 
 
 if __name__ == "__main__":
