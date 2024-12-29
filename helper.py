@@ -4,6 +4,7 @@ import librosa
 import numpy as np
 import hashlib
 import csv
+import pandas as pd  # used for checking for duplicates only
 
 
 def process_files():
@@ -12,12 +13,11 @@ def process_files():
         files = glob.glob(os.path.join(team_directory, '*'))  # the 3 files for each song
 
         for index, file in enumerate(files):
-            # Index: 0 (Full) | 1 (Music) | 2 (Vocals)
-            # NOTE: teams 1, 8, 10, 11, 13, 15, 16, 17, 18 are NOT following this format
-            # SIDE NOTE: I'm not sure if we need to store the type of song (but it's easier to track this way)
+            song_name = file.split("\\")[1]
+            print(f"Song name: {song_name}")
             feature_dict = extract_features(file)
             hashed_features = hash_features(feature_dict)
-            save_to_csv(hashed_features, i, index)
+            save_to_csv(hashed_features, i, song_name)
 
 
 def extract_features(file_path, sr=22050, n_mfcc=13):
@@ -80,21 +80,40 @@ def hash_features(features):
     return feature_hash
 
 
-def save_to_csv(hashed_feature, team_id, song_id, csv_file='song_features.csv'):
+def save_to_csv(hashed_feature, team_id, song_name, csv_file='song_features.csv'):
     file_exists = os.path.isfile(csv_file)  # check if file exists (not really necessary)
 
     with open(csv_file, mode='a', newline='') as file:
         writer = csv.writer(file)
 
         if not file_exists:  # write header if the file doesn't exist
-            writer.writerow(['Team ID', 'Feature Hash'])
+            writer.writerow(['Team ID', 'Song Name', 'Feature Hash'])
 
-        writer.writerow([team_id, song_id, hashed_feature])
+        writer.writerow([team_id, song_name, hashed_feature])
 
     print(f"Saved features for team: {team_id}")
 
 
-process_files()  # Start the process
-# ENSURE FILES ARE CORRECT FIRST BEFORE RUNNING
-# BEC. THIS PROCESS TAKES TIME
+def find_duplicates(csv_file_path, column_name):
+    try:
+        df = pd.read_csv(csv_file_path)
+        duplicates = df[df.duplicated(column_name, keep=False)]
+        duplicates.to_csv('duplicates.csv', index=False)
+        if not duplicates.empty:
+            return duplicates
+        else:
+            return "No duplicate hashes found."
+    except Exception as e:
+        return f"Error finding duplicates: {e}"
+
+# Start the process ( ALREADY DONE)
+# process_files()
+
+# Checking if there are duplicate hashing
+# csv_file = "song_features.csv"
+# column = "Feature Hash"
+# result = find_duplicates(csv_file, column)
+#
+# print(result)
+
 
