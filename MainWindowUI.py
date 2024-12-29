@@ -5,6 +5,7 @@ from pathlib import Path
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog
 from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt
 from helper import extract_features, hash_features
 
 
@@ -97,7 +98,7 @@ class MainWindow(QMainWindow):
         else:
             image_path = "Cover Photos/Generic Cover.png"
         cover_photo = QPixmap(str(image_path))
-        self.song_one_cover.setPixmap(cover_photo.scaled(130, 130))
+        self.song_one_cover.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
     def play_mix(self):
         print("Play Mix Here")
 
