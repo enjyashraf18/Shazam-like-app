@@ -4,6 +4,7 @@ import librosa
 import numpy as np
 import hashlib
 import csv
+import pandas as pd  # used for checking for duplicates only
 
 
 def process_files():
@@ -88,12 +89,31 @@ def save_to_csv(hashed_feature, team_id, song_name, csv_file='song_features.csv'
         if not file_exists:  # write header if the file doesn't exist
             writer.writerow(['Team ID', 'Song Name', 'Feature Hash'])
 
-        writer.writerow([team_id, song_name , hashed_feature])
+        writer.writerow([team_id, song_name, hashed_feature])
 
     print(f"Saved features for team: {team_id}")
 
 
-process_files()  # Start the process
-# ENSURE FILES ARE CORRECT FIRST BEFORE RUNNING
-# BEC. THIS PROCESS TAKES TIME
+def find_duplicates(csv_file_path, column_name):
+    try:
+        df = pd.read_csv(csv_file_path)
+        duplicates = df[df.duplicated(column_name, keep=False)]
+        duplicates.to_csv('duplicates.csv', index=False)
+        if not duplicates.empty:
+            return duplicates
+        else:
+            return "No duplicate hashes found."
+    except Exception as e:
+        return f"Error finding duplicates: {e}"
+
+# Start the process ( ALREADY DONE)
+# process_files()
+
+# Checking if there are duplicate hashing
+csv_file = "song_features.csv"
+column = "Feature Hash"
+result = find_duplicates(csv_file, column)
+
+print(result)
+
 
