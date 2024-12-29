@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_1" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_10" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_11" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_13" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_14" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_15" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_16" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_17" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_18" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_19" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_20" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_3" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_5" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_6" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_7" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_8" />
+      <excludeFolder url="file://$MODULE_DIR$/Data/Team_9" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog
 from PyQt5.QtGui import QIcon
-from helper import extract_features, hash_features
+from old_helper import extract_features, hash_features
 
 
 class MainWindow(QMainWindow):
@@ -48,8 +48,8 @@ class MainWindow(QMainWindow):
     def compare_audio(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav)")
         if file_path:
-            mfccs, chroma = extract_features(file_path)
-            feature_hash = hash_features(mfccs, chroma)
+            features_dict = extract_features(file_path)
+            feature_hash = hash_features(features_dict)
 
             for stored_path, stored_hash in self.database.items():
                 if feature_hash == stored_hash:
