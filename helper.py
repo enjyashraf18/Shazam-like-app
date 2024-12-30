@@ -1,10 +1,13 @@
 import os
 import glob
-import librosa
-import numpy as np
-import hashlib
 import csv
 import pandas as pd  # used for checking for duplicates only
+import librosa
+import librosa.display
+import numpy as np
+from PIL import Image
+import imagehash
+import matplotlib.pyplot as plt
 
 
 def process_files():
@@ -15,83 +18,50 @@ def process_files():
         for index, file in enumerate(files):
             song_name = file.split("\\")[1]
             print(f"Song name: {song_name}")
-            feature_dict = extract_features(file)
-            hashed_features = hash_features(feature_dict)
+            hashed_features = extract_and_hash_features(file)
             save_to_csv(hashed_features, i, song_name)
 
 
-def extract_features(file_path, sr=22050, n_mfcc=13):
-    """
-    Mood (MFCC, Tonnetz)
-    Melody or chords (Chromagram, Tonnetz)
-    Energy or noisiness (ZCR, Spectral Centroid, Roll-Off)
-    Richness or complexity (Spectral Contrast).
+def extract_and_hash_features(audio_path):
+    y, sr = librosa.load(audio_path, sr=None)
 
-    """
-    print(f"Processing file: {file_path}")
-    audio, sr = librosa.load(file_path, sr=sr)
+    # Mel spectrogram: time-frequency representation where the frequency axis
+    # is mapped to the Mel scale (a perceptual scale of frequencies) [idk what this means tbh]
+    mel_spectro = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+    mel_spectro_dB = librosa.power_to_db(mel_spectro, ref=np.max)
 
-    # Useful to recognize type of instrument or voice
-    mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=n_mfcc)
+    # Heatmap of spectrogram
+    fig = plt.figure(figsize=(10, 4))
+    librosa.display.specshow(mel_spectro_dB, sr=sr, x_axis='time', y_axis='mel', fmax=8000, cmap='magma')
+    plt.axis('off')
+    plt.tight_layout(pad=0)
 
-    # Useful for musical notes (C, D, C#) etc.
-    chroma = librosa.feature.chroma_stft(y=audio, sr=sr)
+    # Converting out plot to image arr
+    fig.canvas.draw()
+    image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+    image = image.reshape(fig.canvas.get_width_height()[::-1] + (4,))
+    plt.close(fig)
 
-    # Useful for the difference bet. the loud and quiet parts in a song
-    spectral_contrast = librosa.feature.spectral_contrast(y=audio, sr=sr)
+    # Then convert arr to pil imagew
+    pil_image = Image.fromarray(image[..., :3])
 
-    # Harmony of notes (happy, sad, etc.)
-    tonnetz = librosa.feature.tonnetz(y=librosa.effects.harmonic(audio), sr=sr)
-
-    # How quickly the sound changes
-    zcr = librosa.feature.zero_crossing_rate(y=audio)
-
-    # Tells us if the song has more low-pitch (bass - drums) or high pitch (cymbal - whistle)
-    spectral_centroid = librosa.feature.spectral_centroid(y=audio, sr=sr)
-
-    # Tells us the "balance of energy in the song" (whatever that means lol)
-    spectral_rolloff = librosa.feature.spectral_rolloff(y=audio, sr=sr)
-
-    return {
-        'mfccs': mfccs,
-        'chroma': chroma,
-        'spectral_contrast': spectral_contrast,
-        'tonnetz': tonnetz,
-        'zcr': zcr,
-        'spectral_centroid': spectral_centroid,
-        'spectral_rolloff': spectral_rolloff
-    }  # return dict of features to be hashed
+    hash_value = imagehash.phash(pil_image)  # perceptual hash
+    return str(hash_value)
 
 
-def hash_features(features):
-    combined_features = np.concatenate(
-        [features['mfccs'].flatten(),
-         features['chroma'].flatten(),
-         features['spectral_contrast'].flatten(),
-         features['tonnetz'].flatten(),
-         features['zcr'].flatten(),
-         features['spectral_centroid'].flatten(),
-         features['spectral_rolloff'].flatten()]
-    )
-
-    feature_string = combined_features.tobytes()
-    feature_hash = hashlib.sha256(feature_string).hexdigest()
-
-    return feature_hash
-
-
-def save_to_csv(hashed_feature, team_id, song_name, csv_file='song_features.csv'):
+def save_to_csv(hashed_feature, team_id, song_name, csv_file='database.csv'):
     file_exists = os.path.isfile(csv_file)  # check if file exists (not really necessary)
 
     with open(csv_file, mode='a', newline='') as file:
         writer = csv.writer(file)
 
         if not file_exists:  # write header if the file doesn't exist
-            writer.writerow(['Team ID', 'Song Name', 'Feature Hash'])
+            writer.writerow(['Team ID', 'Song Name', 'Hashed Feature'])
 
         writer.writerow([team_id, song_name, hashed_feature])
 
     print(f"Saved features for team: {team_id}")
+
 
 
 def find_duplicates(csv_file_path, column_name):
@@ -106,28 +76,14 @@ def find_duplicates(csv_file_path, column_name):
     except Exception as e:
         return f"Error finding duplicates: {e}"
 
-# Start the process ( ALREADY DONE)
+# Start the process (ALREADY DONE)
 # process_files()
 
-# Checking if there are duplicate hashing
+# Checking if there are duplicate hashing (NONE)
 # csv_file = "song_features.csv"
 # column = "Feature Hash"
 # result = find_duplicates(csv_file, column)
 #
 # print(result)
-
-
-def produce_features_vector(uploaded_features_dict):
-    uploaded_features_vector = np.concatenate(
-        [uploaded_features_dict['mfccs'].flatten(),
-         uploaded_features_dict['chroma'].flatten(),
-         uploaded_features_dict['spectral_contrast'].flatten(),
-         uploaded_features_dict['tonnetz'].flatten(),
-         uploaded_features_dict['zcr'].flatten(),
-         uploaded_features_dict['spectral_centroid'].flatten(),
-         uploaded_features_dict['spectral_rolloff'].flatten()]
-    ).reshape(1, -1) #reshaping for cosine shit
-    return uploaded_features_vector
-
 
 

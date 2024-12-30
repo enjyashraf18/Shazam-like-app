@@ -1,12 +1,20 @@
 import sys
 import os
 import csv
+
+import imagehash
+import pandas as pd
 from pathlib import Path
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog, QSlider
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
-from helper import extract_features, hash_features, produce_features_vector
+from helper import extract_and_hash_features
+
+
+def hamming_distance(hash1, hash2):
+    # Compute Hamming distance between two perceptual hashes (stored & the one to be compared)
+    return bin(hash1 - hash2).count('1')
 
 
 class MainWindow(QMainWindow):
@@ -75,34 +83,42 @@ class MainWindow(QMainWindow):
             song_name = Path(file_path)
             song_name = song_name.stem
             if index == 0:
-                self.songs_files[index] = file_path
+                # self.songs_files[index] = file_path
                 self.input_one_label.setText(song_name)
             elif index == 1:
-                self.songs_files[index] = file_path
+                # self.songs_files[index] = file_path
                 self.input_two_label.setText(song_name)
             QApplication.processEvents()  # to change label before extracting features
-            uploaded_features_dict = extract_features(file_path)
-            uploaded_features_hash = hash_features(uploaded_features_dict)
-            self.input_hashes[index] = uploaded_features_hash
+            uploaded_features_hashed = extract_and_hash_features(file_path)
+            self.input_hashes[index] = uploaded_features_hashed
 
     def compare_audios(self):
-        csv_file_path = "song_features.csv"
+        csv_file = "database.csv"
         try:
-            with open(csv_file_path, mode="r", newline="", encoding="utf-8") as csv_file:
-                csv_reader = csv.reader(csv_file)
-                for row in csv_reader:
-                    if len(row) < 3:
-                        continue  # skip invalid rows (probably not necessary)
-                    stored_song_id, stored_hash = row[0], row[2]
-                    if self.input_hashes[0] == stored_hash:  # MODIFY TO USE SIMILARITY (ENJY)
-                        self.display_results(stored_song_id)  # REPLACE WITH LIST OF MATCHES IDS
-                        # We want to return multiple matches
-                        return
-            print("No match found in the database.")
-        except FileNotFoundError:
-            print("CSV file not found.")
+            df = pd.read_csv(csv_file)
+
+            input_hash_obj = imagehash.hex_to_hash(self.input_hashes[0])  # input hash to perceptual hash
+
+            similarity_scores = []  # will carry song id & hamming distance with the uploaded song
+            for index, row in df.iterrows():
+                csv_hash_obj = imagehash.hex_to_hash(row['Hashed Feature'])
+                distance = hamming_distance(input_hash_obj, csv_hash_obj)
+                # similarity_scores.append((row['Team ID'], distance))
+                similarity_scores.append((row['Song Name'], distance))
+
+            similarity_scores.sort(key=lambda x: x[1])  # smaller distance means more similar
+
+            # THIS IS WHAT WE WILL SHOW IN UI
+            for song_id, dist in similarity_scores:
+                similarity_percentage = max(0, 100 - dist * 10)  # ADJUST THIS SCALE?
+                # print(f"Song: {self.song_names[song_id]}, Similarity: {similarity_percentage}%, Hamming Distance: {dist}")
+                print(
+                    f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance: {dist}")
+
         except Exception as e:
             print(f"Error: {e}")
+
+        return similarity_scores  # to be used in showing results
 
     def display_results(self, stored_song_id):
         print(f"Match found: {self.song_names[int(stored_song_id)]}")
@@ -114,31 +130,31 @@ class MainWindow(QMainWindow):
             image_path = "Cover Photos/Generic Cover.png"
         cover_photo = QPixmap(str(image_path))
         self.song_one_cover.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
     def play_mix(self):
         print("Play Mix Here")
 
-    def update_weights(self,value, idx):
-        self.weights[idx]= value
+    def update_weights(self, value, idx):
+        self.weights[idx] = value
         self.combine_features()
 
     def combine_features(self):
         song1_weight = self.weights[0] / 100
-        song2_weight = self.weights[1] /100
+        song2_weight = self.weights[1] / 100
 
     def convert_hex_to_bin(self, hex_string):
         pass
 
-    def hamming_distance(self, hash_code1, hash_code2):
-        song1_bin = self.convert_hex_to_bin(hash_code1)
-        song2_bin = self.convert_hex_to_bin(hash_code2)
+    # def hamming_distance(self, hash_code1, hash_code2):  # THIS IS YOURS YA ENJY
+    #     song1_bin = self.convert_hex_to_bin(hash_code1)
+    #     song2_bin = self.convert_hex_to_bin(hash_code2)
 
-        #msh 3arfa bs from that --> similarity index
-        # pass for now
+    # msh 3arfa bs from that --> similarity index
+    # pass for now
 
     def get_similarity_idx(self):
         # nakhod result el hamming_distance
         pass
-
 
 
 
