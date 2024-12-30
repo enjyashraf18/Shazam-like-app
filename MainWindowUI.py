@@ -179,6 +179,8 @@ class MainWindow(QMainWindow):
         self.songs_path_file = [None, None]
         self.mixed_song_output = None
         self.curr_idx = 0
+        self.detect_first_upload = False
+        self.detect_second_upload = False
 
     def upload_song(self, index):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav)")
@@ -190,10 +192,12 @@ class MainWindow(QMainWindow):
                 self.songs_path_file[0] = file_path
                 self.input_one_label.setText(song_name)
                 self.curr_idx = 0
+                self.detect_first_upload = True
             elif index == 1:
                 self.songs_path_file[1] = file_path
                 self.input_two_label.setText(song_name)
                 self.curr_idx = 1
+                self.detect_second_upload = True
             QApplication.processEvents()  # to change label before extracting features
             y, sr = librosa.load(file_path, sr=None)
             self.main_features_extractionn(index, y, sr)
@@ -206,7 +210,8 @@ class MainWindow(QMainWindow):
         csv_file = "database.csv"
         try:
             df = pd.read_csv(csv_file)
-            if self.input_hashes[0] is None or self.input_hashes[1] is None:
+            if self.detect_first_upload and self.detect_second_upload:
+                print("hell man it worked")
                 self.mix_audios()
 
             input_hash_obj = imagehash.hex_to_hash(self.input_hashes[self.curr_idx])  # input hash to perceptual hash
@@ -220,6 +225,7 @@ class MainWindow(QMainWindow):
                 print(f"Hamming distance  {distance}")
                 print(f"similarity  {similarity}")
                 similarity_scores.append((row['Team ID'], distance, similarity))
+
 
             # sort 3la 7asb el distance
             # reminder en distance = 0 y3ni perfect match (no different bits)
@@ -235,7 +241,7 @@ class MainWindow(QMainWindow):
         cover_photos_dir = Path("Cover Photos/")
 
         for row, (song_id, distance, similarity) in enumerate(similarity_scores):
-            print(song_id)
+
             image_paths = list(cover_photos_dir.glob(f"{self.song_names[int(song_id)]}.*"))
             if image_paths:
                 image_path = image_paths[0]
