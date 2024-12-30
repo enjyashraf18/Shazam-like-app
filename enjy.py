@@ -116,6 +116,7 @@ class MainWindow(QMainWindow):
             image_path = "Cover Photos/Generic Cover.png"
         cover_photo = QPixmap(str(image_path))
         self.song_one_cover.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
     def play_mix(self):
         print("Play Mix Here")
 
@@ -156,8 +157,6 @@ class MainWindow(QMainWindow):
     def get_similarity_idx(self):
         # nakhod result el hamming_distance
         pass
-
-
 
 
 if __name__ == "__main__":

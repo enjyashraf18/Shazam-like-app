@@ -219,50 +219,47 @@ class MainWindow(QMainWindow):
                 similarity = self.get_similarity_idx(distance, hash_code)
                 print(f"Hamming distance  {distance}")
                 print(f"similarity  {similarity}")
-                similarity_scores.append((row['Song Name'], distance, similarity))
+                similarity_scores.append((row['Team ID'], distance, similarity))
 
             # sort 3la 7asb el distance
             # reminder en distance = 0 y3ni perfect match (no different bits)
             similarity_scores.sort(key=lambda x: x[1])
-
-            # table
-            for row, (song_id, distance, similarity) in enumerate(similarity_scores):
-                # similarity_percentage = similarity * 100
-                
-                label = QLabel()
-                pixmap = QPixmap(f"Cover Photos/Generic Cover.png")  # Load your image
-                scaled_pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)  # Resize the image to 50x50
-                label.setPixmap(scaled_pixmap)
-
-                # Center-align the image
-                label.setAlignment(Qt.AlignCenter)
-
-                # Add the QLabel to the table as a widget
-                self.table.setCellWidget(row, 0, label)
-                song_item = QTableWidgetItem(f"  {song_id}")
-                similarity_item = QTableWidgetItem(f"{similarity * 100:.2f}%")  # Format similarity percentage
-                similarity_item.setTextAlignment(Qt.AlignCenter)
-                song_item.setFlags(song_item.flags() & ~Qt.ItemIsEditable)
-                similarity_item.setFlags(similarity_item.flags() & ~Qt.ItemIsEditable)
-                self.table.setItem(row, 1, song_item)
-                self.table.setItem(row, 2, similarity_item)
-                # print(f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
+            self.display_results(similarity_scores)
 
         except Exception as e:
             print(f"Error: {e}")
 
         return similarity_scores  # to be used in showing results
 
-    def display_results(self, stored_song_id):
-        print(f"Match found: {self.song_names[int(stored_song_id)]}")
+    def display_results(self, similarity_scores):
         cover_photos_dir = Path("Cover Photos/")
-        image_paths = list(cover_photos_dir.glob(f"{self.song_names[int(stored_song_id)]}.*"))
-        if image_paths:
-            image_path = image_paths[0]
-        else:
-            image_path = "Cover Photos/Generic Cover.png"
-        cover_photo = QPixmap(str(image_path))
-        self.song_one_cover.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        for row, (song_id, distance, similarity) in enumerate(similarity_scores):
+            print(song_id)
+            image_paths = list(cover_photos_dir.glob(f"{self.song_names[int(song_id)]}.*"))
+            if image_paths:
+                image_path = image_paths[0]
+            else:
+                image_path = "Cover Photos/Generic Cover.png"
+
+            label = QLabel()
+            cover_photo = QPixmap(str(image_path))
+
+            label.setPixmap(cover_photo.scaled(130, 130, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+            # Center-align the image
+            label.setAlignment(Qt.AlignCenter)
+
+            # Add the QLabel to the table as a widget
+            self.table.setCellWidget(row, 0, label)
+            song_item = QTableWidgetItem(f"  {self.song_names[int(song_id)]}")
+            similarity_item = QTableWidgetItem(f"{similarity * 100:.2f}%")  # Format similarity percentage
+            similarity_item.setTextAlignment(Qt.AlignCenter)
+            song_item.setFlags(song_item.flags() & ~Qt.ItemIsEditable)
+            similarity_item.setFlags(similarity_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(row, 1, song_item)
+            self.table.setItem(row, 2, similarity_item)
+            # print(f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
 
     def play_mix(self):
         print("Play Mix Here")
