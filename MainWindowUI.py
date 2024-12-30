@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
                 similarity = self.get_similarity_idx(distance, hash_code)
                 print(f"Hamming distance  {distance}")
                 print(f"similarity  {similarity}")
-                similarity_scores.append((row['Team ID'], distance, similarity))
+                similarity_scores.append((row['Song Name'], distance, similarity))
 
 
             # sort 3la 7asb el distance
@@ -240,9 +240,9 @@ class MainWindow(QMainWindow):
     def display_results(self, similarity_scores):
         cover_photos_dir = Path("Cover Photos/")
 
-        for row, (song_id, distance, similarity) in enumerate(similarity_scores):
-
-            image_paths = list(cover_photos_dir.glob(f"{self.song_names[int(song_id)]}.*"))
+        for row, (song_name, distance, similarity) in enumerate(similarity_scores):
+            print(song_name)
+            image_paths = list(cover_photos_dir.glob(f"{song_name}.*"))
             if image_paths:
                 image_path = image_paths[0]
             else:
@@ -258,7 +258,7 @@ class MainWindow(QMainWindow):
 
             # Add the QLabel to the table as a widget
             self.table.setCellWidget(row, 0, label)
-            song_item = QTableWidgetItem(f"  {self.song_names[int(song_id)]}")
+            song_item = QTableWidgetItem(f"  {song_name}")
             similarity_item = QTableWidgetItem(f"{similarity * 100:.2f}%")  # Format similarity percentage
             similarity_item.setTextAlignment(Qt.AlignCenter)
             song_item.setFlags(song_item.flags() & ~Qt.ItemIsEditable)
