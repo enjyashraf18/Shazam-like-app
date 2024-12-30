@@ -7,7 +7,8 @@ import librosa
 import pandas as pd
 from pathlib import Path
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog, QSlider
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog, QSlider, \
+    QTableWidget, QTableWidgetItem, QHeaderView, QAbstractButton
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 from helper import extract_and_hash_features
@@ -24,7 +25,7 @@ class MainWindow(QMainWindow):
         # Load the UI file
         uic.loadUi('main.ui', self)
         self.setWindowTitle("BEATSEEK")
-        self.setWindowIcon(QIcon("Deliverables/icon.png"))
+        self.setWindowIcon(QIcon("Deliverables/logo.png"))
 
         self.browse_song_btn_one = self.findChild(QPushButton, "browse_song1")
         self.browse_song_btn_two = self.findChild(QPushButton, "browse_song2")
@@ -37,6 +38,105 @@ class MainWindow(QMainWindow):
         self.song_two_cover.setPixmap(self.generic_song_cover)
         self.input_one_label = self.findChild(QLabel, "song_name1")
         self.input_two_label = self.findChild(QLabel, "song_name2")
+
+        self.table = self.findChild(QTableWidget, "table")
+        self.table.setRowCount(5)
+        self.table.setColumnCount(3)
+
+        # Set the headers for columns
+        self.table.setHorizontalHeaderLabels(['Icon', 'Song', 'Similarity'])
+
+        # Add data to the table
+        # self.table.setItem(0, 0, QTableWidgetItem('Alice'))
+        # self.table.setItem(0, 1, QTableWidgetItem('30'))
+        #
+        # self.table.setItem(1, 0, QTableWidgetItem('Bob'))
+        # self.table.setItem(1, 1, QTableWidgetItem('25'))
+        #
+        # self.table.setItem(2, 0, QTableWidgetItem('Charlie'))
+        # self.table.setItem(2, 1, QTableWidgetItem('35'))
+
+        # Disable header clicks
+        self.table.horizontalHeader().setSectionsClickable(False)
+        self.table.verticalHeader().setSectionsClickable(False)
+
+        # Set row and column sizes programmatically
+
+        self.table.setColumnWidth(1, 494)
+        self.table.setColumnWidth(0, 150)
+        self.table.horizontalHeader().setFixedHeight(50)
+
+        # Prevent user from resizing rows and columns
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
+        self.table.verticalHeader().setDefaultAlignment(Qt.AlignCenter)
+
+        # Change the header color and match it with the first column
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: #225971;
+                border-radius: 10px;
+                color: #f7e1d7;
+                gridline-color: #16425b;
+                font-size: 18px;
+                font-weight: bold;
+            }
+            QHeaderView::section {
+                background-color: #f7e1d7;
+                color: #16425b;
+                padding: 5px;
+                font-weight: bold;
+                border: 1px solid #16425b;
+                font-size: 16px;
+            }
+            
+            QTableWidget::item {
+                padding: 5px;
+            }
+            
+        """)
+
+        self.table.horizontalHeader().setStyleSheet("""QHeaderView::section {
+                background-color: #f7e1d7;
+                color: #16425b;
+                padding: 5px;
+                font-weight: bold;
+                border: 1px solid #16425b;
+                font-size: 16px;
+            }
+            QHeaderView::section:last{
+            border-top-right-radius: 10px;
+            }
+            
+        }""")
+
+        corner_widget = self.table.findChild(QAbstractButton)
+        if corner_widget:
+            corner_widget.setStyleSheet("""
+                    background-color: #f7e1d7;
+                    border-top-left-radius: 10px;
+                """)
+            corner_widget.setEnabled(False)
+
+        self.table.verticalHeader().setStyleSheet("""QHeaderView::section {
+                background-color: #f7e1d7;
+                color: #16425b;
+                padding: 5px;
+                font-weight: bold;
+                border: 1px solid #16425b;
+                font-size: 16px;
+            }
+            QHeaderView::section:last{
+            border-bottom-left-radius: 10px;
+            }
+            """)
+
+        for row in range(self.table.rowCount()):
+            item = self.table.item(row, 1)  # Access items in column 1
+            if item:
+                item.setTextAlignment(Qt.AlignCenter)
+            self.table.setRowHeight(row, 150)
 
         self.browse_song_btn_one.clicked.connect(lambda: self.upload_song(0))
         self.browse_song_btn_two.clicked.connect(lambda: self.upload_song(1))
@@ -126,10 +226,27 @@ class MainWindow(QMainWindow):
             similarity_scores.sort(key=lambda x: x[1])
 
             # table
-            for song_id, distance, similarity in similarity_scores:
-                similarity_percentage = similarity * 100
-                print(
-                    f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
+            for row, (song_id, distance, similarity) in enumerate(similarity_scores):
+                # similarity_percentage = similarity * 100
+                
+                label = QLabel()
+                pixmap = QPixmap(f"Cover Photos/Generic Cover.png")  # Load your image
+                scaled_pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)  # Resize the image to 50x50
+                label.setPixmap(scaled_pixmap)
+
+                # Center-align the image
+                label.setAlignment(Qt.AlignCenter)
+
+                # Add the QLabel to the table as a widget
+                self.table.setCellWidget(row, 0, label)
+                song_item = QTableWidgetItem(f"  {song_id}")
+                similarity_item = QTableWidgetItem(f"{similarity * 100:.2f}%")  # Format similarity percentage
+                similarity_item.setTextAlignment(Qt.AlignCenter)
+                song_item.setFlags(song_item.flags() & ~Qt.ItemIsEditable)
+                similarity_item.setFlags(similarity_item.flags() & ~Qt.ItemIsEditable)
+                self.table.setItem(row, 1, song_item)
+                self.table.setItem(row, 2, similarity_item)
+                # print(f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
 
         except Exception as e:
             print(f"Error: {e}")
