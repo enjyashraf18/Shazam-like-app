@@ -143,15 +143,18 @@ class MainWindow(QMainWindow):
         self.match_button.clicked.connect(self.compare_audios)
         self.play_mix_btn.clicked.connect(self.play_mix)
 
-        song1_slider = self.findChild(QSlider, "song_slider1")
-        song1_slider.setRange(0, 100)
-        song1_slider.setValue(100)
-        song1_slider.valueChanged.connect(lambda value, index=0: self.update_weights(value, index))
+        self.song1_slider = self.findChild(QSlider, "song_slider1")
+        self.song1_slider.setRange(0, 100)
+        self.song1_slider.setValue(100)
+        self.song1_slider.valueChanged.connect(lambda value, index=0: self.update_weights(value, index))
+        self.slider_one_label = self.findChild(QLabel, "slider_label1")
 
-        song2_slider = self.findChild(QSlider, "song_slider2")
-        song2_slider.setRange(0, 100)
-        song2_slider.setValue(100)
-        song2_slider.valueChanged.connect(lambda value, index=1: self.update_weights(value, index))
+        self.song2_slider = self.findChild(QSlider, "song_slider2")
+        self.song2_slider.setRange(0, 100)
+        self.song2_slider.setValue(100)
+        self.song2_slider.valueChanged.connect(lambda value, index=1: self.update_weights(value, index))
+        self.slider_two_label = self.findChild(QLabel, "slider_label2")
+
 
         self.input_hashes = [""] * 3
         self.song_names = {
@@ -224,7 +227,7 @@ class MainWindow(QMainWindow):
                 similarity = self.get_similarity_idx(distance, hash_code)
                 print(f"Hamming distance  {distance}")
                 print(f"similarity  {similarity}")
-                similarity_scores.append((row['Song Name'], distance, similarity))
+                similarity_scores.append((row['Team ID'], row['Song Name'], distance, similarity))
 
 
             # sort 3la 7asb el distance
@@ -240,9 +243,9 @@ class MainWindow(QMainWindow):
     def display_results(self, similarity_scores):
         cover_photos_dir = Path("Cover Photos/")
 
-        for row, (song_name, distance, similarity) in enumerate(similarity_scores):
+        for row, (song_id, song_name, distance, similarity) in enumerate(similarity_scores):
             print(song_name)
-            image_paths = list(cover_photos_dir.glob(f"{song_name}.*"))
+            image_paths = list(cover_photos_dir.glob(f"{self.song_names[song_id]}.*"))
             if image_paths:
                 image_path = image_paths[0]
             else:
@@ -272,7 +275,22 @@ class MainWindow(QMainWindow):
 
     def update_weights(self, value, idx):
         self.weights[idx] = value
-        self.mix_audios()
+        try:
+            self.weights[int(not idx)] = 100 - value
+        except Exception as e:
+            print(e)
+        # Label Updates
+        if idx == 0:
+            self.song1_slider.setValue(value)
+            self.song2_slider.setValue(100 - value)
+            self.slider_one_label.setText(str(value))
+            self.slider_two_label.setText(str(100 - value))
+        else:
+            self.song1_slider.setValue(100 - value)
+            self.song2_slider.setValue(value)
+            self.slider_one_label.setText(str(100 - value))
+            self.slider_two_label.setText(str(value))
+        self.mix_audios() # GIVES ERROR BTW
 
     def mix_audios(self):
         if self.input_hashes[0] is None or self.input_hashes[1] is None:
