@@ -91,7 +91,8 @@ class MainWindow(QMainWindow):
                 # self.songs_files[index] = file_path
                 self.input_two_label.setText(song_name)
             QApplication.processEvents()  # to change label before extracting features
-            uploaded_features_hashed = extract_and_hash_features(file_path)
+            y, sr = librosa.load(file_path, sr=None)
+            uploaded_features_hashed = extract_and_hash_features(y, sr)
             self.input_hashes[index] = uploaded_features_hashed
 
     def compare_audios(self):
@@ -110,16 +111,15 @@ class MainWindow(QMainWindow):
                 similarity = self.get_similarity_idx(distance, hash_code)
                 print(f"Hamming distance  {distance}")
                 print(f"similarity  {similarity}")
-
-                # similarity_scores.append((row['Team ID'], distance))
                 similarity_scores.append((row['Song Name'], distance, similarity))
 
-            similarity_scores.sort(key=lambda x: x[1])  # smaller distance means more similar
+            # sort 3la 7asb el distance
+            # reminder en distance = 0 y3ni perfect match (no different bits)
+            similarity_scores.sort(key=lambda x: x[1])
 
-            # THIS IS WHAT WE WILL SHOW IN UI
+            # table
             for song_id, distance, similarity in similarity_scores:
-                similarity_percentage = similarity * 100 # ADJUST THIS SCALE?
-                # print(f"Song: {self.song_names[song_id]}, Similarity: {similarity_percentage}%, Hamming Distance: {dist}")
+                similarity_percentage = similarity * 100
                 print(
                     f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
 

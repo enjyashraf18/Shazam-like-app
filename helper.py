@@ -18,12 +18,13 @@ def process_files():
         for index, file in enumerate(files):
             song_name = file.split("\\")[1]
             print(f"Song name: {song_name}")
-            hashed_features = extract_and_hash_features(file)
+            y, sr = librosa.load(file, sr=None)
+            hashed_features = extract_and_hash_features(y, sr)
             save_to_csv(hashed_features, i, song_name)
 
 
-def extract_and_hash_features(audio_path):
-    y, sr = librosa.load(audio_path, sr=None)
+def extract_and_hash_features(y, sr):
+    # y, sr = librosa.load(audio_path, sr=None)
 
     # Mel spectrogram: time-frequency representation where the frequency axis
     # is mapped to the Mel scale (a perceptual scale of frequencies) [idk what this means tbh]
