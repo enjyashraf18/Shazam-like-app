@@ -12,10 +12,10 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 from helper import extract_and_hash_features
 
-
-def hamming_distance(hash1, hash2):
-    # Compute Hamming distance between two perceptual hashes (stored & the one to be compared)
-    return bin(hash1 - hash2).count('1')
+#
+# def hamming_distance(hash1, hash2):
+#     # Compute Hamming distance between two perceptual hashes (stored & the one to be compared)
+#     return bin(hash1 - hash2).count('1')
 
 
 class MainWindow(QMainWindow):
@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
 
         self.weights = [100] * 2
         self.audio_files = [None, None]
+        self.mixed_song_output = None
 
     def upload_song(self, index):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav)")
@@ -111,16 +112,16 @@ class MainWindow(QMainWindow):
                 print(f"similarity  {similarity}")
 
                 # similarity_scores.append((row['Team ID'], distance))
-                similarity_scores.append((row['Song Name'], similarity))
+                similarity_scores.append((row['Song Name'], distance, similarity))
 
             similarity_scores.sort(key=lambda x: x[1])  # smaller distance means more similar
 
             # THIS IS WHAT WE WILL SHOW IN UI
-            for song_id, dist in similarity_scores:
-                similarity_percentage = max(0, 100 - dist * 10)  # ADJUST THIS SCALE?
+            for song_id, distance, similarity in similarity_scores:
+                similarity_percentage = similarity * 100 # ADJUST THIS SCALE?
                 # print(f"Song: {self.song_names[song_id]}, Similarity: {similarity_percentage}%, Hamming Distance: {dist}")
                 print(
-                    f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance: {dist}")
+                    f"Song: {song_id} || Similarity: {similarity_percentage}% || Hamming Distance:{distance} ")
 
         except Exception as e:
             print(f"Error: {e}")
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
 
     def update_weights(self, value, idx):
         self.weights[idx] = value
-        self.final_song_output = self.mix_audios()
+        self.mixed_song_output = self.mix_audios()
 
     def mix_audios(self):
         song1, sr1 = librosa.load(self.songs_path_file[0], sr=None)
@@ -190,7 +191,7 @@ class MainWindow(QMainWindow):
     def get_similarity_idx(self, distance, hash_code1):
         # im not sure of total_bits tbh
         total_bits = len(hash_code1) * 4
-        return (distance / total_bits)
+        return 1- (distance / total_bits)
 
 
 
