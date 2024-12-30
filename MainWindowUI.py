@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         song2_slider.setValue(100)
         song2_slider.valueChanged.connect(lambda value, index=1: self.update_weights(value, index))
 
-        self.input_hashes = [""] * 2
+        self.input_hashes = [""] * 3
         self.song_names = {
             1: "Save Your Tears",
             3: "Someone Like You",
@@ -74,9 +74,11 @@ class MainWindow(QMainWindow):
             20: "Hit the Road Jack"
         }
 
-        self.weights = [100] * 2
-        self.audio_files = [None, None]
+        self.weights = [100, 100]
+        self.audio_files = None
+        self.songs_path_file = [None, None]
         self.mixed_song_output = None
+        self.curr_idx = 0
 
     def upload_song(self, index):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav)")
@@ -85,24 +87,30 @@ class MainWindow(QMainWindow):
             song_name = Path(file_path)
             song_name = song_name.stem
             if index == 0:
-                # self.songs_files[index] = file_path
+                self.songs_path_file[0] = file_path
                 self.input_one_label.setText(song_name)
+                self.curr_idx = 0
             elif index == 1:
-                # self.songs_files[index] = file_path
+                self.songs_path_file[1] = file_path
                 self.input_two_label.setText(song_name)
+                self.curr_idx = 1
             QApplication.processEvents()  # to change label before extracting features
             y, sr = librosa.load(file_path, sr=None)
-            uploaded_features_hashed = extract_and_hash_features(y, sr)
-            self.input_hashes[index] = uploaded_features_hashed
+            self.main_features_extractionn(index, y, sr)
+
+    def main_features_extractionn(self,index, y, sr):
+        uploaded_features_hashed = extract_and_hash_features(y, sr)
+        self.input_hashes[index] = uploaded_features_hashed
 
     def compare_audios(self):
         csv_file = "database.csv"
         try:
             df = pd.read_csv(csv_file)
+            if self.input_hashes[0] is None or self.input_hashes[1] is None:
+                self.mix_audios()
 
-            input_hash_obj = imagehash.hex_to_hash(self.input_hashes[0])  # input hash to perceptual hash
+            input_hash_obj = imagehash.hex_to_hash(self.input_hashes[self.curr_idx])  # input hash to perceptual hash
             print(f"input_hash_obj: {input_hash_obj}")
-
             similarity_scores = []  # will carry song id & hamming distance with the uploaded song
             for index, row in df.iterrows():
                 csv_hash_obj = imagehash.hex_to_hash(row['Hashed Feature'])
@@ -144,27 +152,37 @@ class MainWindow(QMainWindow):
 
     def update_weights(self, value, idx):
         self.weights[idx] = value
-        self.mixed_song_output = self.mix_audios()
+        self.mix_audios()
 
     def mix_audios(self):
+        if self.input_hashes[0] is None or self.input_hashes[1] is None:
+            print("one missinggg")
+            return
+
+        print("weslna henaaa 1")
         song1, sr1 = librosa.load(self.songs_path_file[0], sr=None)
         song2, sr2 = librosa.load(self.songs_path_file[1], sr=None)
+
 
         # some concerns
         if sr1 != sr2:
             song2 = librosa.resample(song2, orig_sr=sr2, target_sr=sr1)
             sr2 = sr1
 
-        # Match lengths
+        # match lengths
         min_length = min(len(song1), len(song2))
         song1 = song1[:min_length]
         song2 = song2[:min_length]
 
+
+
         song1_weight = self.weights[0] / 100
         song2_weight = self.weights[1] / 100
         new_song = (song1_weight * song1 + song2 * song2_weight) / (song1_weight + song2_weight)
+        index = 2
+        self.curr_idx = index
 
-        return new_song
+        self.main_features_extractionn(index, new_song, sr2)
 
     def convert_hex_to_bin(self, hex_string):
         # return bin(int(hex_string, 16))[2:].zfill(256)
