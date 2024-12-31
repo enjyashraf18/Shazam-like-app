@@ -225,14 +225,14 @@ class MainWindow(QMainWindow):
                 # print(f"csv_hash_obj: {csv_hash_obj}")
                 distance, hash_code = self.hamming_distance(input_hash_obj, csv_hash_obj)
                 similarity = self.get_similarity_idx(distance, hash_code)
-                print(f"Hamming distance  {distance}")
+                print(f"Hamming distance  {distance}, song: {row["Song Name"]}")
                 print(f"similarity  {similarity}")
                 similarity_scores.append((row['Team ID'], row['Song Name'], distance, similarity))
 
 
             # sort 3la 7asb el distance
             # reminder en distance = 0 y3ni perfect match (no different bits)
-            similarity_scores.sort(key=lambda x: x[1])
+            similarity_scores.sort(key=lambda x: x[2])
             self.display_results(similarity_scores)
 
         except Exception as e:
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
             self.song2_slider.setValue(value)
             self.slider_one_label.setText(str(100 - value))
             self.slider_two_label.setText(str(value))
-        self.mix_audios() # GIVES ERROR BTW
+        self.mix_audios()
 
     def mix_audios(self):
         if self.input_hashes[0] is None or self.input_hashes[1] is None:
