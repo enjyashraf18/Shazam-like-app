@@ -225,7 +225,6 @@ class MainWindow(QMainWindow):
                 # print(f"csv_hash_obj: {csv_hash_obj}")
                 distance, hash_code = self.hamming_distance(input_hash_obj, csv_hash_obj)
                 similarity = self.get_similarity_idx(distance, hash_code)
-                print(f"Hamming distance  {distance}, song: {row["Song Name"]}")
                 print(f"similarity  {similarity}")
                 similarity_scores.append((row['Team ID'], row['Song Name'], distance, similarity))
 
