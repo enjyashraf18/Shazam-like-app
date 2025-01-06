@@ -238,7 +238,7 @@ font-size: 14px;
 font-weight:500;</string>
                      </property>
                      <property name="text">
-                      <string>100</string>
+                      <string>50</string>
                      </property>
                     </widget>
                    </item>
@@ -433,7 +433,7 @@ font-size: 14px;
 font-weight:500;</string>
                      </property>
                      <property name="text">
-                      <string>100</string>
+                      <string>50</string>
                      </property>
                     </widget>
                    </item>
@@ -563,8 +563,8 @@ font-weight:500;</string>
 }
 QSlider::groove:horizontal {
     height: 5px;
-    background: white;  
-    border-radius: 3px;   
+    background: white;
+    border-radius: 3px;
 }
 
 QSlider::add-page:horizontal {
@@ -575,12 +575,12 @@ QSlider::add-page:horizontal {
 }
 
 QSlider::handle:horizontal {
-    background: #ffffff;  
+    background: #ffffff;
     border: 2px solid #1e6e9e;
     width: 10px;
     height: 10px;
-    border-radius: 6px;    
-    margin: -4px 0;       
+    border-radius: 6px;
+    margin: -4px 0;
 }</string>
                  </property>
                  <property name="orientation">

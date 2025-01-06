@@ -27,7 +27,7 @@ def extract_and_hash_features(y, sr):
     # y, sr = librosa.load(audio_path, sr=None)
 
     # Mel spectrogram: time-frequency representation where the frequency axis
-    # is mapped to the Mel scale (a perceptual scale of frequencies) [idk what this means tbh]
+    # is mapped to the Mel scale (a perceptual scale of frequencies)
     mel_spectro = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
     mel_spectro_dB = librosa.power_to_db(mel_spectro, ref=np.max)
 
