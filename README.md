@@ -16,6 +16,9 @@ When user uploads to vocal files (i.e. no instruments), the results do not inclu
 When user uploads files that don't contain any vocals, none of the results is a vocals-only file
 ![image](https://github.com/user-attachments/assets/a8c4d384-8236-43fd-a48d-088daebfdaa8)
 
+## Acknowledgments 
+This project was supervised by Dr. Tamer Basha & Eng. Omar, who provided invaluable guidance and expertise throughout its development as a part of the Digital Signal Processing course at Cairo University Faculty of Engineering.
+
 ## Team Members
 <div align="center">
   <table style="border-collapse: collapse; border: none;">
